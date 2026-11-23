@@ -21,7 +21,7 @@ function isDuplicate(candidate, ignoreId = null) {
   );
 }
 export async function listBooks() {                               
-  await delay();
+  await delay(); 
   return [...books];
 }
 export async function findBook(id) {
