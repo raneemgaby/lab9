@@ -1,10 +1,10 @@
 ## Run 
-# Server (terminal 1): # http://localhost:3000
+ # Server (terminal 1): # http://localhost:3000
 cd server
 npm install
 npm run dev
 
-# Client (terminal 2): # http://localhost:5173
+ # Client (terminal 2): # http://localhost:5173
 cd client
 copy .env.example .env
 npm install
@@ -231,11 +231,12 @@ Date: Mon, 23 Nov 2026 19:35:11 GMT
 Connection: keep-alive
 Keep-Alive: timeout=5
 
+
 ### Network tab 
 In Chrome DevTools -> Network, I toggled a book as read in the client at http://localhost:5173. Because the request is a PATCH with a Content-Type: application/json header, the browser first sent an OPTIONS preflight request to http://localhost:3000/api/books/<id>.
 
 
-## Reasoning questions
+### Reasoning questions
 1. Parameters. The id is a route parameter because it identifies one specific resource (/api/books/7 is "the book number 7"), while genre and sort only change how a collection is filtered or ordered, so they are optional query parameters. If id were in the query string, the path would no longer name a resource, /api/books would have to mean both "the list" and "one book", and caching, links and the DELETE /api/books/:id convention would get messy.
 2. Body parsing (experiment). CHECK: I moved app.use(express.json()) below the routes and sent a POST. req.body was undefined because the request reached my route before any body parsing had run. My handler checks that the body is an object, so the POST returned 400 ("Request body must be a JSON object."). (If your handler returned something else, write what you saw.) Middleware runs in the order it is registered, so the parser must come before the routes.
 3. One response (experiment). CHECK: I removed the return before the early 404 in GET /api/books/:id and requested a missing id. The client still received the 404, but the handler kept running and tried to send a second response with res.json(book). The server threw ERR_HTTP_HEADERS_SENT ("Cannot set headers after they are sent to the client") and logged it. Without return, the function does not stop after sending, and a request can only get one response.
@@ -244,7 +245,7 @@ In Chrome DevTools -> Network, I toggled a book as read in the client at http://
 6. Validation. Client-side checks only help the user, because anyone can bypass the form with curl, Postman or edited JavaScript and send any data. The server is the only code we control, so it must validate every request to protect the data, enforce rules such as the rating-only-when-read rule, and detect things only it knows, like duplicates.
 7. State (experiment). CHECK: I restarted the server and the data went back to the 8 seed books: books I had added were gone and deleted ones were back. This shows that the data lives only in the server process's memory (a JavaScript variable), and disappears when the process ends. To keep it, we need persistent storage, such as a database (or at least writing to a file).
 
-## Self-study
+### Self-study
 URLSearchParams (MDN). I read that URLSearchParams builds a query string from key/value pairs and percent-encodes the values, so a search like Tolkien & co cannot break the URL. In api/books.js I create one, call .set(key, value) for every filter that is not empty, and add .toString() to the URL.
 
 localeCompare (MDN). a.localeCompare(b) compares strings using language rules instead of raw character codes, so "apple" and "Banana" sort alphabetically regardless of case. I used it with { sensitivity: 'base' } for sorting by title and author on the server, and it returns a negative, zero or positive number like a normal sort comparator.
